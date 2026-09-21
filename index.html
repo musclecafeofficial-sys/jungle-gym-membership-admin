@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jungle Gym Membership Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section id="loginView" class="login-shell">
+    <form id="loginForm" class="login-card">
+      <div class="brand-mark">JG</div>
+      <p class="eyebrow">Jungle Gym</p>
+      <h1>Membership Admin</h1>
+      <p class="muted">Sign in with your administrator account.</p>
+      <label>Email<input id="email" type="email" autocomplete="email" required></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+      <p id="loginError" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark small">JG</div><div><strong>Jungle Gym</strong><span>Membership Admin</span></div></div>
+      <nav>
+        <button class="nav-item active" data-filter="all">Dashboard</button>
+        <button class="nav-item" data-filter="active">Active memberships</button>
+        <button class="nav-item" data-filter="expired">Expired memberships</button>
+        <button class="nav-item" data-filter="expiring">Expiring soon</button>
+        <button class="nav-item" data-filter="missing">Missing dates</button>
+      </nav>
+      <button id="logoutBtn" class="logout">Sign out</button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><p class="eyebrow">Overview</p><h1 id="pageTitle">Membership Dashboard</h1></div>
+        <button id="refreshBtn" class="secondary">Refresh data</button>
+      </header>
+
+      <section id="metrics" class="metrics" aria-label="Membership summary"></section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Memberships</h2><p id="resultSummary" class="muted"></p></div>
+          <div class="actions">
+            <button id="exportBtn" class="secondary">Export CSV</button>
+          </div>
+        </div>
+
+        <div id="categoryTabs" class="tabs"></div>
+
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Search name, member ID, NIC or phone">
+          <select id="statusFilter" aria-label="Membership status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+            <option value="expiring">Expiring soon</option>
+            <option value="missing">Missing expiry date</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Member</th><th>Member ID</th><th>Plan</th><th>Start date</th><th>Expiry date</th><th>Status</th><th></th></tr></thead>
+            <tbody id="memberRows"></tbody>
+          </table>
+          <div id="emptyState" class="empty hidden">No matching memberships found.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="memberDialog">
+    <div class="dialog-head"><div><p class="eyebrow">Member profile</p><h2 id="dialogName"></h2></div><button id="closeDialog" class="icon-btn" aria-label="Close">×</button></div>
+    <div id="memberDetails" class="detail-grid"></div>
+    <h3>Membership and payment history</h3>
+    <div class="table-wrap compact"><table><thead><tr><th>Plan</th><th>Paid</th><th>Receipt</th><th>Start</th><th>Expiry</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

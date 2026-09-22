@@ -1,0 +1,43 @@
+name: Sync Google Sheet memberships
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: membership-sheet-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-sync.txt
+
+      - name: Install sync dependencies
+        run: pip install -r requirements-sync.txt
+
+      - name: Synchronize new memberships
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: "1LGfbn4B7OUiHmXCtt2und2wdTm9sCpvnwogV0Vh0Rmw"
+          GOOGLE_SHEET_TAB: "Form Responses 1"
+          GOOGLE_START_ROW: "201"
+          SUPABASE_URL: "https://udyqgjjokayhsflsauah.supabase.co"
+          SUPABASE_PUBLISHABLE_KEY: "sb_publishable_wqpKpGVe3gIOEHEGo5mGiA_bLsDaoyI"
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
+        run: python tools/sync_google_sheet.py

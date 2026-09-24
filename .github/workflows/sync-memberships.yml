@@ -36,7 +36,7 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: "1LGfbn4B7OUiHmXCtt2und2wdTm9sCpvnwogV0Vh0Rmw"
           GOOGLE_SHEET_TAB: "Form Responses 1"
-          GOOGLE_START_ROW: "201"
+          GOOGLE_START_ROW: "200"
           SUPABASE_URL: "https://udyqgjjokayhsflsauah.supabase.co"
           SUPABASE_PUBLISHABLE_KEY: "sb_publishable_wqpKpGVe3gIOEHEGo5mGiA_bLsDaoyI"
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}

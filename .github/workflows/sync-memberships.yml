@@ -41,3 +41,9 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: "sb_publishable_wqpKpGVe3gIOEHEGo5mGiA_bLsDaoyI"
           SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
         run: python tools/sync_google_sheet.py
+
+      - name: Create missing member portal accounts
+        env:
+          SUPABASE_URL: "https://udyqgjjokayhsflsauah.supabase.co"
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python tools/provision_member_accounts.py

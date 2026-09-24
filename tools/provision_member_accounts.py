@@ -9,7 +9,9 @@ import requests
 
 
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
-SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY", ""
+).strip()
 
 
 def api_headers():
@@ -21,7 +23,9 @@ def api_headers():
     # Modern sb_secret keys use only the apikey header.
     # Legacy service_role JWT keys also use Authorization.
     if not SERVICE_ROLE_KEY.startswith("sb_secret_"):
-        headers["Authorization"] = f"Bearer {SERVICE_ROLE_KEY}"
+        headers["Authorization"] = (
+            f"Bearer {SERVICE_ROLE_KEY}"
+        )
 
     return headers
 
@@ -37,19 +41,23 @@ def account_email(member_code):
 
 
 def nic_password(identity_number):
-    return re.sub(r"\D", "", str(identity_number or ""))
+    return re.sub(
+        r"\D",
+        "",
+        str(identity_number or ""),
+    )
 
 
 def check_response(response):
     if response.ok:
         return
 
-    print(
-        f"Supabase request failed: "
-        f"{response.status_code} {response.text}",
-        file=sys.stderr,
+    message = response.text[:1000]
+
+    raise RuntimeError(
+        f"Supabase request failed "
+        f"({response.status_code}): {message}"
     )
-    response.raise_for_status()
 
 
 def get_json(path, params=None):
@@ -68,7 +76,9 @@ def load_members():
     return get_json(
         "/rest/v1/members",
         {
-            "select": "id,member_code,identity_number",
+            "select": (
+                "id,member_code,identity_number"
+            ),
             "member_code": "not.is.null",
             "identity_number": "not.is.null",
             "limit": "1000",
@@ -80,7 +90,9 @@ def load_mappings():
     return get_json(
         "/rest/v1/member_accounts",
         {
-            "select": "member_id,user_id,login_name",
+            "select": (
+                "member_id,user_id,login_name"
+            ),
             "limit": "1000",
         },
     )
@@ -142,11 +154,9 @@ def create_mapping(member, user_id):
 
 def main():
     if not SERVICE_ROLE_KEY:
-        print(
-            "Member account provisioning skipped: "
+        raise RuntimeError(
             "SUPABASE_SERVICE_ROLE_KEY is not configured."
         )
-        return
 
     members = load_members()
 
@@ -172,13 +182,17 @@ def main():
             skipped += 1
             continue
 
-        password = nic_password(member.get("identity_number"))
+        password = nic_password(
+            member.get("identity_number")
+        )
 
         if len(password) < 6:
             ineligible += 1
             continue
 
-        email = account_email(member.get("member_code"))
+        email = account_email(
+            member.get("member_code")
+        )
 
         try:
             user_id = auth_users.get(email)
@@ -191,6 +205,7 @@ def main():
                     password,
                     member,
                 )
+
                 auth_users[email] = user_id
                 created += 1
 
@@ -210,7 +225,10 @@ def main():
     )
 
     if failures:
-        print("\n".join(failures), file=sys.stderr)
+        print(
+            "\n".join(failures),
+            file=sys.stderr,
+        )
         raise SystemExit(1)
 
 

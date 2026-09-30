@@ -128,7 +128,7 @@ async function exportExpiredPdf() {
     const pageSize = 500;
     for (let offset = 0; ; offset += pageSize) {
       const { data, error } = await db.from('current_memberships')
-        .select('member_id,full_name,member_code,identity_number,email,phone,plan_name,expiry_date')
+        .select('member_id,full_name,member_code,identity_number,email,phone,plan_name,start_date,expiry_date')
         .order('full_name').order('member_id').range(offset, offset + pageSize - 1);
       if (error) throw error;
       allRows.push(...(data || []));

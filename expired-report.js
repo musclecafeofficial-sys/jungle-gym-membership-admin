@@ -32,7 +32,7 @@
     const date = generatedAt.toLocaleDateString('en-GB', { timeZone: 'Asia/Colombo', day: '2-digit', month: 'short', year: 'numeric' });
     const time = generatedAt.toLocaleTimeString('en-GB', { timeZone: 'Asia/Colombo', hour: '2-digit', minute: '2-digit', hour12: false });
     const value = item => String(item ?? '').trim() || 'Not recorded';
-    const expiryDate = item => {
+    const reportDate = item => {
       const match = String(item || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
       return match ? `${match[3]}/${match[2]}/${match[1]}` : value(item);
     };
@@ -41,13 +41,13 @@
     doc.autoTable({
       startY: 51,
       margin: { top: 51, right: margin, bottom: 18, left: margin },
-      head: [['No.', 'Member name', 'Membership ID', 'NIC / Passport / DL', 'Email address', 'Contact number', 'Membership type', 'Expiry date']],
-      body: ordered.map((row, index) => [String(index + 1), value(row.full_name), value(row.member_code), value(row.identity_number), value(row.email), value(row.phone), value(row.plan_name), expiryDate(row.expiry_date)]),
+      head: [['No.', 'Member name', 'Membership ID', 'NIC / Passport / DL', 'Email address', 'Contact number', 'Membership type', 'Start date', 'Expiry date']],
+      body: ordered.map((row, index) => [String(index + 1), value(row.full_name), value(row.member_code), value(row.identity_number), value(row.email), value(row.phone), value(row.plan_name), reportDate(row.start_date), reportDate(row.expiry_date)]),
       theme: 'striped',
       styles: { font: 'helvetica', fontSize: 9, cellPadding: 3, overflow: 'linebreak', valign: 'middle', textColor: [23, 31, 23], lineColor: [224, 231, 224], lineWidth: .15 },
       headStyles: { fillColor: [23, 36, 24], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
       alternateRowStyles: { fillColor: [244, 248, 239] },
-      columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 48 }, 2: { cellWidth: 30 }, 3: { cellWidth: 35 }, 4: { cellWidth: 51 }, 5: { cellWidth: 30 }, 6: { cellWidth: 39 }, 7: { cellWidth: 26 } },
+      columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 43 }, 2: { cellWidth: 30 }, 3: { cellWidth: 31 }, 4: { cellWidth: 43 }, 5: { cellWidth: 27 }, 6: { cellWidth: 33 }, 7: { cellWidth: 26 }, 8: { cellWidth: 26 } },
       showHead: 'everyPage',
       rowPageBreak: 'avoid',
       didDrawPage: () => {

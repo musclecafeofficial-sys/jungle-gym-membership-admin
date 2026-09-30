@@ -45,6 +45,7 @@ $('refreshBtn').addEventListener('click', loadData);
 $('searchInput').addEventListener('input', e => { state.search = e.target.value.trim().toLowerCase(); renderTable(); });
 $('statusFilter').addEventListener('change', e => { state.status = e.target.value; renderTable(); });
 $('exportBtn').addEventListener('click', exportCsv);
+$('expiredPdfBtn').addEventListener('click', exportExpiredPdf);
 $('closeDialog').addEventListener('click', () => $('memberDialog').close());
 
 document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => {
@@ -115,6 +116,42 @@ function exportCsv() {
   const quote = v => `"${String(v??'').replaceAll('"','""')}"`;
   const csv = [columns.map(x=>quote(x[0])).join(','),...rows.map(r=>columns.map(x=>quote(r[x[1]])).join(','))].join('\r\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`jungle-gym-memberships-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
+}
+
+async function exportExpiredPdf() {
+  const button = $('expiredPdfBtn');
+  button.disabled = true;
+  button.textContent = 'Preparing PDF…';
+  try {
+    // Read all pages so the report is complete even beyond Supabase's row limit.
+    const allRows = [];
+    const pageSize = 500;
+    for (let offset = 0; ; offset += pageSize) {
+      const { data, error } = await db.from('current_memberships')
+        .select('member_id,full_name,member_code,identity_number,email,phone,expiry_date')
+        .order('full_name').order('member_id').range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      allRows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
+    const expired = allRows.filter(row => statusOf(row) === 'expired');
+    if (!expired.length) {
+      toast('There are no expired memberships to export.');
+      return;
+    }
+    const logoData = await window.JungleGymExpiredReport.loadLogo('Logo.png');
+    const generatedAt = new Date();
+    const report = window.JungleGymExpiredReport.create(expired, { logoData, generatedAt });
+    const date = generatedAt.toLocaleDateString('en-CA', { timeZone: 'Asia/Colombo' });
+    report.save(`jungle-gym-expired-memberships-${date}.pdf`);
+    toast(`PDF downloaded: ${expired.length} expired memberships.`);
+  } catch (error) {
+    console.error('Expired membership PDF failed:', error);
+    toast('Could not generate the PDF. ' + (error.message || 'Please try again.'));
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Export expired PDF';
+  }
 }
 
 function toast(message) { $('toast').textContent=message; $('toast').classList.remove('hidden'); setTimeout(()=>$('toast').classList.add('hidden'),4000); }

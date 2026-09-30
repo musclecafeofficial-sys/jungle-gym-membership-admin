@@ -48,6 +48,7 @@
         <div class="panel-head">
           <div><h2>Memberships</h2><p id="resultSummary" class="muted"></p></div>
           <div class="actions">
+            <button id="expiredPdfBtn" class="secondary" title="Download all expired memberships, regardless of the current search or plan filter">Export expired PDF</button>
             <button id="exportBtn" class="secondary">Export CSV</button>
           </div>
         </div>
@@ -86,6 +87,9 @@
   <div id="toast" class="toast hidden" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/jspdf.plugin.autotable.min.js"></script>
+  <script src="expired-report.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

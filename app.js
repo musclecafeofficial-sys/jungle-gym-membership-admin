@@ -41,7 +41,7 @@ $('loginForm').addEventListener('submit', async e => {
 });
 
 $('logoutBtn').addEventListener('click', () => db.auth.signOut());
-$('refreshBtn').addEventListener('click', loadData);
+$('refreshBtn').addEventListener('click', () => salesView ? generateSales() : loadData());
 $('searchInput').addEventListener('input', e => { state.search = e.target.value.trim().toLowerCase(); renderTable(); });
 $('statusFilter').addEventListener('change', e => { state.status = e.target.value; renderTable(); });
 $('exportBtn').addEventListener('click', exportCsv);
@@ -50,12 +50,18 @@ $('closeDialog').addEventListener('click', () => $('memberDialog').close());
 
 document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-  button.classList.add('active'); state.status = button.dataset.filter; $('statusFilter').value = state.status;
+  button.classList.add('active');
+  salesView = button.dataset.view === 'sales';
+  $('salesPanel').classList.toggle('hidden', !salesView);
+  $('membershipPanel').classList.toggle('hidden', salesView);
+  $('metrics').classList.toggle('hidden', salesView);
+  if (salesView) { $('pageTitle').textContent = 'Monthly Sales Report'; return; }
+  state.status = button.dataset.filter; $('statusFilter').value = state.status;
   $('pageTitle').textContent = button.textContent === 'Dashboard' ? 'Membership Dashboard' : button.textContent;
   renderTable();
 }));
 
-function showLogin() { $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden'); }
+function showLogin() { resetSales(); $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden'); }
 async function showApp() { $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden'); await loadData(); }
 
 async function loadData() {
@@ -155,4 +161,55 @@ async function exportExpiredPdf() {
 }
 
 function toast(message) { $('toast').textContent=message; $('toast').classList.remove('hidden'); setTimeout(()=>$('toast').classList.add('hidden'),4000); }
+let salesView = false;
+let salesSnapshot = null;
+let salesRequest = 0;
+const salesTools = window.JungleGymSalesReport;
+const monthParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+$('salesMonth').value = monthParts.find(p => p.type === 'year').value + '-' + monthParts.find(p => p.type === 'month').value;
+$('salesMonth').addEventListener('change', resetSales);
+$('generateSalesBtn').addEventListener('click', generateSales);
+$('salesPdfBtn').addEventListener('click', exportSalesPdf);
+function resetSales() {
+  salesRequest++; salesSnapshot = null;
+  $('salesPdfBtn').disabled = true;
+  $('generateSalesBtn').disabled = false;
+  $('generateSalesBtn').textContent = 'Generate report';
+  $('salesTable').classList.add('hidden'); $('salesRows').innerHTML = '';
+  $('salesSummary').textContent = 'Choose a month, then generate the report.';
+}
+async function generateSales() {
+  resetSales();
+  const request = salesRequest, month = $('salesMonth').value;
+  const button = $('generateSalesBtn');
+  button.disabled = true; button.textContent = 'Generating…';
+  $('salesSummary').textContent = 'Loading payment history…';
+  try {
+    const rows = await salesTools.fetchRows(db, month);
+    if (request !== salesRequest) return;
+    salesSnapshot = { rows, month };
+    $('salesRows').innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.memberId)}</td><td>${esc(r.package)}</td><td>${esc(r.phone)}</td><td>${esc(r.receipt)}</td><td>${r.amount == null ? 'Not recorded' : salesTools.money(r.amount)}</td><td>${esc(r.staff)}</td></tr>`).join('') : '<tr><td colspan="7">No payments recorded for this month.</td></tr>';
+    $('salesTotal').textContent = salesTools.money(salesTools.total(rows));
+    const missing = rows.filter(r => r.amount == null).length;
+    $('salesSummary').textContent = `${salesTools.label(month)} · ${rows.length} membership records. ${missing ? missing + ' record(s) without amounts are excluded from the total.' : 'Group payments are counted using the amount recorded for each member.'}`;
+    $('salesTable').classList.remove('hidden'); $('salesPdfBtn').disabled = false;
+  } catch (error) {
+    if (request === salesRequest) $('salesSummary').textContent = 'Could not generate the report: ' + (error.message || 'Please try again.');
+  } finally {
+    if (request === salesRequest) { button.disabled = false; button.textContent = 'Generate report'; }
+  }
+}
+async function exportSalesPdf() {
+  const snapshot = salesSnapshot;
+  if (!snapshot) return;
+  const button = $('salesPdfBtn'); button.disabled = true; button.textContent = 'Preparing PDF…';
+  try {
+    const logoData = await window.JungleGymExpiredReport.loadLogo('Logo.png');
+    if (salesSnapshot !== snapshot) return;
+    salesTools.create(snapshot.rows, { month: snapshot.month, logoData }).save(`jungle-gym-sales-${snapshot.month}.pdf`);
+    toast('Monthly sales PDF downloaded.');
+  } catch (error) { toast('Could not export sales PDF: ' + (error.message || 'Please try again.')); }
+  finally { button.disabled = !salesSnapshot; button.textContent = 'Export sales PDF'; }
+}
 init();
+

@@ -32,6 +32,7 @@
         <button class="nav-item" data-filter="expired">Expired memberships</button>
         <button class="nav-item" data-filter="expiring">Expiring soon</button>
         <button class="nav-item" data-filter="missing">Missing dates</button>
+        <button class="nav-item" data-view="sales">Monthly sales report</button>
       </nav>
       <button id="logoutBtn" class="logout">Sign out</button>
     </aside>
@@ -44,7 +45,7 @@
 
       <section id="metrics" class="metrics" aria-label="Membership summary"></section>
 
-      <section class="panel">
+      <section id="membershipPanel" class="panel">
         <div class="panel-head">
           <div><h2>Memberships</h2><p id="resultSummary" class="muted"></p></div>
           <div class="actions">
@@ -74,6 +75,16 @@
           <div id="emptyState" class="empty hidden">No matching memberships found.</div>
         </div>
       </section>
+      <section id="salesPanel" class="panel hidden">
+        <div class="panel-head"><div><h2>Monthly sales report</h2><p class="muted">Select a payment month to view new memberships and renewals.</p></div></div>
+        <div class="sales-controls">
+          <label for="salesMonth">Payment month<input id="salesMonth" type="month" required></label>
+          <button id="generateSalesBtn" class="primary">Generate report</button>
+          <button id="salesPdfBtn" class="secondary" disabled>Export sales PDF</button>
+        </div>
+        <p id="salesSummary" class="muted" role="status">Choose a month, then generate the report.</p>
+        <div class="table-wrap"><table id="salesTable" class="hidden"><thead><tr><th>Member name</th><th>Membership ID</th><th>Package</th><th>Phone number</th><th>Receipt number</th><th>Amount (LKR)</th><th>Staff member</th></tr></thead><tbody id="salesRows"></tbody><tfoot><tr><th colspan="5">Total recorded sales (LKR)</th><td id="salesTotal"></td><td></td></tr></tfoot></table></div>
+      </section>
     </main>
   </div>
 
@@ -90,6 +101,8 @@
   <script src="vendor/jspdf.umd.min.js"></script>
   <script src="vendor/jspdf.plugin.autotable.min.js"></script>
   <script src="expired-report.js"></script>
+  <script src="sales-report.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+

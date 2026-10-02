@@ -188,7 +188,7 @@ async function generateSales() {
     const rows = await salesTools.fetchRows(db, month);
     if (request !== salesRequest) return;
     salesSnapshot = { rows, month };
-    $('salesRows').innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.memberId)}</td><td>${esc(r.package)}</td><td>${esc(r.phone)}</td><td>${esc(r.receipt)}</td><td>${r.amount == null ? 'Not recorded' : salesTools.money(r.amount)}</td><td>${esc(r.staff)}</td></tr>`).join('') : '<tr><td colspan="7">No payments recorded for this month.</td></tr>';
+    $('salesRows').innerHTML = rows.length ? rows.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.memberId)}</td><td>${esc(r.package)}</td><td>${esc(r.phone)}</td><td>${esc(r.receipt)}</td><td>${salesTools.date(r.paymentDate)}</td><td>${r.amount == null ? 'Not recorded' : salesTools.money(r.amount)}</td><td>${esc(r.staff)}</td></tr>`).join('') : '<tr><td colspan="8">No payments recorded for this month.</td></tr>';
     $('salesTotal').textContent = salesTools.money(salesTools.total(rows));
     const missing = rows.filter(r => r.amount == null).length;
     $('salesSummary').textContent = `${salesTools.label(month)} · ${rows.length} membership records. ${missing ? missing + ' record(s) without amounts are excluded from the total.' : 'Group payments are counted using the amount recorded for each member.'}`;

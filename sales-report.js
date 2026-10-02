@@ -29,9 +29,10 @@
     }
     return rows.map(row => {
       const member = Array.isArray(row.member) ? row.member[0] : row.member;
-      return { name: value(member?.full_name), memberId: value(member?.member_code), package: value(row.plan_name), phone: value(member?.phone), receipt: value(row.receipt_number), amount: cents(row.paid_amount), staff: value(row.issued_by_staff) };
+      return { name: value(member?.full_name), memberId: value(member?.member_code), package: value(row.plan_name), phone: value(member?.phone), receipt: value(row.receipt_number), paymentDate: row.payment_date, amount: cents(row.paid_amount), staff: value(row.issued_by_staff) };
     });
   }
+  function date(value) { const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return match ? `${match[3]}/${match[2]}/${match[1]}` : 'Not recorded'; }
   function total(rows) { return rows.reduce((sum, row) => sum + (row.amount ?? 0), 0); }
   function create(rows, { month, logoData, generatedAt = new Date() }) {
     bounds(month);
@@ -46,15 +47,15 @@
     const generated = generatedAt.toLocaleString('en-GB', { timeZone: 'Asia/Colombo', dateStyle: 'medium', timeStyle: 'short' });
     doc.autoTable({
       startY: 54, margin: { top: 54, left: 14, right: 14, bottom: 18 },
-      head: [['No.', 'Member name', 'Membership ID', 'Package', 'Phone number', 'Receipt number', 'Amount (LKR)', 'Staff member']],
-      body: rows.length ? rows.map((r, i) => [i + 1, r.name, r.memberId, r.package, r.phone, r.receipt, r.amount == null ? 'Not recorded' : money(r.amount), r.staff]) : [[{ content: 'No payments recorded for this month.', colSpan: 8 }]],
-      foot: [[{ content: 'TOTAL RECORDED SALES (LKR)', colSpan: 6, styles: { halign: 'right' } }, money(total(rows)), '']],
+      head: [['No.', 'Member name', 'Membership ID', 'Package', 'Phone number', 'Receipt number', 'Payment date', 'Amount (LKR)', 'Staff member']],
+      body: rows.length ? rows.map((r, i) => [i + 1, r.name, r.memberId, r.package, r.phone, r.receipt, date(r.paymentDate), r.amount == null ? 'Not recorded' : money(r.amount), r.staff]) : [[{ content: 'No payments recorded for this month.', colSpan: 9 }]],
+      foot: [[{ content: 'TOTAL RECORDED SALES (LKR)', colSpan: 7, styles: { halign: 'right' } }, money(total(rows)), '']],
       showFoot: 'lastPage', showHead: 'everyPage', rowPageBreak: 'avoid', theme: 'striped',
       styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak', valign: 'middle', textColor: [23,31,23], lineWidth: .15, lineColor: [224,231,224] },
       headStyles: { fillColor: [23,36,24], textColor: 255, fontStyle: 'bold' },
       footStyles: { fillColor: [229,241,210], textColor: [23,36,24], fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [244,248,239] },
-      columnStyles: { 0:{cellWidth:10,cellPadding:2},1:{cellWidth:50},2:{cellWidth:32},3:{cellWidth:40},4:{cellWidth:28},5:{cellWidth:29},6:{cellWidth:32,halign:'right'},7:{cellWidth:48} },
+      columnStyles: { 0:{cellWidth:10,cellPadding:2},1:{cellWidth:43},2:{cellWidth:31},3:{cellWidth:36},4:{cellWidth:27},5:{cellWidth:26},6:{cellWidth:26},7:{cellWidth:32,halign:'right'},8:{cellWidth:38} },
       didDrawPage: () => {
         doc.addImage(logoData, 'PNG', 14, 10, 27, 27);
         doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(68,101,27); doc.text('JUNGLE GYM',48,17);
@@ -75,5 +76,5 @@
     }
     return doc;
   }
-  window.JungleGymSalesReport = { bounds, cents, money, label, fetchRows, total, create };
+  window.JungleGymSalesReport = { bounds, cents, money, date, label, fetchRows, total, create };
 })();

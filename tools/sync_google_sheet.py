@@ -29,6 +29,18 @@ MONTHS_BY_PLAN = {
     "6 months (couple)": 6,
     "annual": 12,
     "annual (couple)": 12,
+    "per month (individual)": 1,
+    "2 months (individual)": 2,
+    "3 months (individual)": 3,
+    "6 months (individual)": 6,
+    "annual (individual)": 12,
+    "3 months (couple)": 3,
+    "3 months (family)": 3,
+    "6 months (family)": 6,
+    "annual (family)": 12,
+    "family package - 3 months": 3,
+    "family package - 6 months": 6,
+    "family package - annual": 12,
 }
 
 
@@ -106,6 +118,9 @@ def build_payload(headers, row, row_number):
         "identity_number": text(cell(headers, row, "National Identity Card / Driving License / Passport Number")),
         "member_code": text(cell(headers, row, "Membership ID")),
         "plan_name": plan,
+        "package_group_id": text(cell(headers, row, "Package Group ID")),
+        "registration_type": text(cell(headers, row, "Registration Type")),
+        "issued_by_staff": text(cell(headers, row, "Receipt Issued By / Registration Guided By")),
         "paid_amount": number(cell(headers, row, "Paid Amount")),
         "receipt_number": text(cell(headers, row, "Receipt Number")),
         "special_notes": text(cell(headers, row, "Special Notes")),
@@ -121,8 +136,9 @@ def build_payload(headers, row, row_number):
 
 
 def sync_payload(payload, row_number):
+    endpoint = "sync_group_member_from_sheet" if payload.get("package_group_id") else "sync_membership_from_sheet"
     response = requests.post(
-        f"{SUPABASE_URL}/rest/v1/rpc/sync_membership_from_sheet",
+        f"{SUPABASE_URL}/rest/v1/rpc/{endpoint}",
         headers={
             "apikey": SUPABASE_KEY,
             "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -167,3 +183,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
